@@ -42,11 +42,14 @@ button.sm.pri{background:var(--ac);border-color:var(--ac);color:#fff}button.sm:d
 table.m th,table.m td{white-space:normal;padding:10px 12px}
 table.m th{font-size:.72rem}
 table.m .in{min-width:70px}
-@media(max-width:700px){#sheet{padding:10px 6px 16px}
-table.m th,table.m td{padding:8px 4px;font-size:.8rem}
-table.m th{font-size:.58rem;letter-spacing:.01em}
-table.m .bar{min-width:34px}table.m .pr{gap:4px}table.m .pr span{font-size:.68rem;min-width:0}
-table.m input[type=checkbox]{width:17px;height:17px}table.m .in{padding:5px 4px;font-size:.8rem}}
+@media(max-width:700px){#sheet{padding:10px 8px 16px}}
+table.m.c .vt{display:none}table.m.c .tm{display:block}
+table.m.c th,table.m.c td{padding:8px 2px;font-size:.76rem}
+table.m.c th{font-size:.54rem;letter-spacing:0}
+table.m.c .pr .bar{display:none}table.m.c .pr span{font-size:.75rem;min-width:0;text-align:center}table.m.c td.item a{font-size:.78rem}
+table.m.c input[type=checkbox]{width:17px;height:17px}table.m.c .in{padding:5px 4px;font-size:.8rem}
+.tm{display:none;font-size:.7rem;color:var(--mu);font-weight:400;margin-top:2px}
+.ver{color:var(--mu);font-size:.72rem;text-align:center;margin:10px 0 0}
 </style></head><body>
 <div id="bar"></div>
 <div id="sheet"></div>
@@ -76,8 +79,8 @@ function adm(){if(!admin)return '';
 function master(){
   const types=[...new Set(PAGES.map(p=>p.ty).filter(Boolean))];
   const head=`<h1>\u{1F52D} Master Packing List</h1><p class="sub">${edit?'Edit mode: change anything, then press Save changes.':'Tap an item to open its checklist.'}</p>`;
-  if(!edit)return `<div class="wrap wide">${head}<div class="card"><table class="m"><tr><th>Item</th><th>Type</th><th>Needed For Event</th><th>Progress</th><th>Packed in Trailer?</th><th>Operator</th></tr>`+
-    PAGES.map(p=>{const[a,b]=cnt(p);return `<tr><td class="item"><a data-t="${esc(p.t)}" onclick="go(this.dataset.t)">${esc(p.t)}</a></td><td>${esc(p.ty)}</td><td><input type="checkbox" disabled ${p.need?'checked':''}></td><td>${bar(a,b)}</td><td><input type="checkbox" disabled ${full(p)?'checked':''} title="Checks automatically when every item on its tab is packed"></td><td>${esc(p.op||'')}</td></tr>`}).join('')+`</table></div></div>`;
+  if(!edit)return `<div class="wrap wide">${head}<div class="card"><table class="m"><tr><th>Item</th><th class="vt">Type</th><th>Needed For Event</th><th>Progress</th><th>Packed in Trailer?</th><th>Operator</th></tr>`+
+    PAGES.map(p=>{const[a,b]=cnt(p);return `<tr><td class="item"><a data-t="${esc(p.t)}" onclick="go(this.dataset.t)">${esc(p.t)}</a><small class="tm">${esc(p.ty)}</small></td><td class="vt">${esc(p.ty)}</td><td><input type="checkbox" disabled ${p.need?'checked':''}></td><td>${bar(a,b)}</td><td><input type="checkbox" disabled ${full(p)?'checked':''} title="Checks automatically when every item on its tab is packed"></td><td>${esc(p.op||'')}</td></tr>`}).join('')+`</table></div><p class="ver">Site version: Oct 2 – wide layout</p></div>`;
   return `<div class="wrap wide">${head}<datalist id="types">${types.map(x=>`<option value="${esc(x)}">`).join('')}</datalist><div class="card"><table class="m"><tr><th>Item</th><th>Type</th><th>Needed For Event</th><th>Operator</th><th></th></tr>`+
     PAGES.map((p,n)=>`<tr><td><input class="in" value="${esc(p.t)}" onchange="setP(${n},'t',this.value)"></td><td><input class="in" list="types" value="${esc(p.ty)}" onchange="setP(${n},'ty',this.value)"></td><td><input type="checkbox" ${p.need?'checked':''} onchange="setP(${n},'need',this.checked)"></td><td><input class="in" placeholder="Name(s)" value="${esc(p.op||'')}" onchange="setP(${n},'op',this.value)"></td><td class="acts"><button class="sm" onclick="delP(${n})" title="Delete page">\u2715</button></td></tr>`).join('')+`</table></div><p class="add"><button class="sm" onclick="addP()">+ Add page</button></p></div>`}
 function sheet(p){const[a,b]=cnt(p),n=PAGES.indexOf(p);
@@ -90,8 +93,12 @@ function render(){
   const c=cur(),p=bt()[c];
   $.innerHTML=adm()+(p?sheet(p):master());
   T.innerHTML=TABS.map(n=>{const q=bt()[n],d=q&&full(q);const on=n===c||(!p&&n==='Master List');return `<button class="${on?'on':''} ${d?'ok':''}" data-t="${esc(n)}" onclick="go(this.dataset.t)">${d?'\u2713 ':''}${esc(n)}</button>`}).join('');
+  fit();
   const on=T.querySelector('.on');if(on&&!render.s){on.scrollIntoView({inline:'center',block:'nearest'});render.s=1}
 }
+function fit(){const tb=document.querySelector('table.m');if(!tb)return;tb.classList.remove('c');
+  const c=tb.parentElement;if(c.scrollWidth>c.clientWidth+1)tb.classList.add('c')}
+addEventListener('resize',fit);
 function go(n){location.hash=n==='Master List'?'':encodeURIComponent(n)}
 /* ---------- owner editing ---------- */
 const mark=()=>{dirty=true;render()};
